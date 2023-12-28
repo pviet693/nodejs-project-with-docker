@@ -1,0 +1,44 @@
+version: "3.9"
+
+# Create volume
+volumes:
+  mongodb: {}
+
+# Create services
+services:
+  # MongoDB service
+  mongo_db:
+    container_name: db_container
+    image: mongo:latest
+    restart: always
+    ports:
+      # 2717: host machine, 27017: container
+      - 2717:27017
+    volumes:
+      - mongodb:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: learn-nodejs
+      MONGO_INITDB_ROOT_USERNAME: viet
+      MONGO_INITDB_ROOT_PASSWORD: 123123
+
+  # Node API service
+  api:
+    # build image from existed Dockerfile
+    build:
+      dockerfile: Dockerfile.prod
+      context: .
+    ports:
+      # 4000: host machine, 3000: container
+      - 3002:3002
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      PORT: 3002
+      MONGODB_URI: mongodb://mongo_db:27017
+      DB_NAME: learn-nodejs
+      DB_USER: viet
+      DB_PASS: 123123
+    # required mongo_db to start first
+    depends_on:
+      - mongo_db
